@@ -1,0 +1,96 @@
+package Program;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.io.FileUtils;
+import org.openqa.selenium.By;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Wait;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Reporter;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
+
+import io.github.bonigarcia.wdm.WebDriverManager;
+
+public class assignement {
+	List<WebElement> alltags;
+	ChromeDriver driver;
+	
+
+	@BeforeTest
+	public void starttest() {
+		WebDriverManager.chromedriver().setup();
+		 driver = new ChromeDriver();
+		driver.get("https://rummy777.com/");
+		driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+		alltags = driver.findElementsByTagName("a");
+	}
+
+	@Test(priority=1)
+	public void welcome() throws IOException, InterruptedException {
+		System.out.println("wleocme");
+		String link[] = null;
+		System.out.println(alltags.size());
+		int linkcount = alltags.size();
+		link = new String[linkcount];
+		for (int i = 0; i < alltags.size(); i++) {
+			System.out.println("linkon page are " + alltags.get(i).getAttribute("href"));
+			link[i] = alltags.get(i).getAttribute("href");
+		}
+		for (int j = 0; j < linkcount; j++) {
+			driver.navigate().to(link[j]);
+			Thread.sleep(5000);
+			screenshot(driver);
+			driver.navigate().back();
+		}
+		driver.quit();
+	}
+
+	@Test(priority =0)
+	public void brokenlink() throws IOException {
+		for (WebElement links : alltags) {
+			String linkURl = links.getAttribute("href");
+			URL ur = new URL(linkURl);
+			URLConnection urlconnt = ur.openConnection();
+			HttpURLConnection httpurl = (HttpURLConnection) urlconnt;
+			httpurl.setConnectTimeout(5000);
+			httpurl.connect();
+			if (httpurl.getResponseCode() >= 400) {
+				System.err.println((linkURl + "-" + httpurl.getResponseMessage()));
+			}
+		}
+	}
+
+	public void screenshot(WebDriver driver) throws IOException {
+		String screenshotfilename = driver.getTitle();
+		Date date = new Date();
+		if(screenshotfilename == null) {
+			screenshotfilename= date.toString().replace(" ", "-").replace(":", "-");
+			System.out.println(screenshotfilename);
+	
+		}
+		System.out.println(screenshotfilename);
+		File screenshotFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+		FileUtils.copyFile(screenshotFile,
+				new File("C:\\Users\\rsingh27\\Desktop\\screen\\" + screenshotfilename + ".png"));
+	}
+
+}
